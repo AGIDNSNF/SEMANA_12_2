@@ -1,0 +1,10 @@
+.venv/
+.automation_env/
+.automation_browsers/
+.automation_qa/
+__pycache__/
+*.pyc
+*.sqlite3
+*.log
+.env
+.env.*
