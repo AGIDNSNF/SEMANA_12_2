@@ -1,0 +1,144 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Préstamos UNCP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-uncp shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{% url 'prestamos:catalogo' %}">
+      <span class="brand-mark">U</span> Préstamos UNCP
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
+            aria-controls="navPrincipal" aria-expanded="false" aria-label="Mostrar navegación">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navPrincipal">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:catalogo' %}">Catálogo público</a></li>
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}">Panel</a></li>
+          {% if perms.prestamos.change_prestamo %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}">Préstamos</a></li>
+          {% endif %}
+          {% if perms.prestamos.add_devolucion %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:devoluciones_pendientes' %}">Devoluciones</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav align-items-lg-center">
+        {% if prestamos_vencidos_usuario %}
+          <li class="nav-item me-lg-2">
+            <a class="nav-link text-warning fw-semibold" href="{% url 'prestamos:dashboard' %}">
+              ● {{ prestamos_vencidos_usuario }} vencido(s)
+            </a>
+          </li>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ user.get_full_name|default:user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text small text-muted">{{ rol_actual }}</span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'prestamos:dashboard' %}">Panel de control</a></li>
+              {% if user.is_staff %}
+                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Administración Django</a></li>
+              {% endif %}
+              <li>
+                <form method="post" action="{% url 'prestamos:logout' %}" class="px-3 py-1">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">Cerrar sesión</button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="btn btn-light btn-sm text-primary fw-semibold px-3" href="{% url 'prestamos:login' %}">Iniciar sesión</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid flex-grow-1">
+  <div class="row g-0">
+    {% if user.is_authenticated %}
+      <aside class="col-lg-2 d-none d-lg-block sidebar py-4 px-3">
+        <p class="text-uppercase small text-muted fw-bold mb-2">Menú · {{ rol_actual }}</p>
+        <ul class="nav nav-pills flex-column gap-1">
+          <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}">Panel</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:catalogo' %}">Catálogo de equipos</a></li>
+          {% if rol_actual == 'Docente' or rol_actual == 'Administrador' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:solicitar_prestamo' %}">Solicitar préstamo</a></li>
+          {% endif %}
+          {% if rol_actual == 'Docente' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:mis_prestamos' %}">Mis préstamos</a></li>
+          {% endif %}
+          {% if perms.prestamos.registrar_prestamo %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:prestamo_rapido' %}">Registrar en ventanilla</a></li>
+          {% endif %}
+          {% if perms.prestamos.view_prestamo and rol_actual != 'Docente' %}            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}">Todos los préstamos</a></li>
+          {% endif %}
+          {% if perms.prestamos.add_devolucion %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:devoluciones_pendientes' %}">Devoluciones</a></li>
+          {% endif %}
+          {% if perms.prestamos.ver_reportes %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:reportes' %}">Reportes</a></li>
+          {% endif %}
+          {% if perms.prestamos.gestionar_equipos %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:equipo_crear' %}">Nuevo equipo</a></li>
+          {% endif %}
+          {% if user.is_superuser %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:auditoria' %}">Auditoría</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin Django</a></li>
+          {% endif %}
+        </ul>
+        <hr>
+        <div class="small text-muted">
+          <p class="mb-1 fw-semibold">Sesión segura</p>
+          <p class="mb-0">Cierre automático tras 30 minutos de inactividad.</p>
+        </div>
+      </aside>
+      <main class="col-lg-10 px-3 px-lg-4 py-4">
+    {% else %}
+      <main class="col-12 px-0">
+    {% endif %}
+        <div class="{% if user.is_authenticated %}container-fluid{% else %}container{% endif %}">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% if prestamos_vencidos_usuario and user.is_authenticated %}
+            <div class="alert alert-warning d-flex justify-content-between align-items-center">
+              <span><strong>Atención:</strong> tiene {{ prestamos_vencidos_usuario }} préstamo(s) con devolución vencida.</span>
+              <a class="btn btn-sm btn-warning" href="{% url 'prestamos:dashboard' %}">Revisar</a>
+            </div>
+          {% endif %}
+          {% block contenido %}{% endblock %}
+        </div>
+      </main>
+  </div>
+</div>
+
+<footer class="bg-white border-top py-3 mt-auto">
+  <div class="container-fluid d-flex flex-wrap justify-content-between small text-muted px-4">
+    <span>Universidad Nacional del Centro del Perú · Facultad de Ingeniería de Sistemas</span>
+    <span>IS093A · Práctica Semana 12 · Caso 1</span>
+  </div>
+</footer>
+<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">{{ titulo }}</h1>
+      </div>
+      <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+              <div class="col-md-{% if field.name == 'nombre' or field.name == 'codigo_patrimonial' %}6{% elif field.name == 'descripcion' %}12{% else %}4{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-outline-secondary" href="{% if equipo %}{% url 'prestamos:equipo_detalle' equipo.pk %}{% else %}{% url 'prestamos:catalogo' %}{% endif %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar equipo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

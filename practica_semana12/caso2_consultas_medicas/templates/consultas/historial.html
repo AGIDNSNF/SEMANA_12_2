@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titulo %}Historial clínico{% endblock %}
+{% block contenido %}
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <p class="text-muted small mb-1">Historial clínico confidencial</p>
+        <h1 class="h4 fw-bold mb-1">{{ paciente.nombre_completo }}</h1>
+        <p class="text-muted mb-0">DNI {{ paciente.dni }} · {{ paciente.get_tipo_display }} · {{ paciente.edad }} años</p>
+      </div>
+      <div class="text-end small">
+        <p class="mb-1"><span class="detail-label">Código UNCP:</span> {{ paciente.codigo_uncp|default:"—" }}</p>
+        <p class="mb-1"><span class="detail-label">Correo:</span> {{ paciente.email }}</p>
+        <p class="mb-0"><span class="detail-label">Alergias:</span> {{ paciente.alergias|default:"Ninguna registrada" }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="h5 fw-bold mb-3">Consultas registradas</h2>
+{% for consulta in consultas %}
+  <div class="card mb-3">
+    <div class="card-header bg-white d-flex justify-content-between flex-wrap gap-2">
+      <div>
+        <span class="fw-semibold">{{ consulta.fecha_registro|date:"d/m/Y H:i" }}</span>
+        <span class="text-muted small">· {{ consulta.medico.nombre_completo }} (CMP {{ consulta.medico.cmp }})</span>
+      </div>
+      <span class="badge text-bg-light border">{{ consulta.cita.especialidad.nombre }}</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="clinical-block">
+            <p class="detail-label mb-1">Diagnóstico</p>
+            <p class="mb-0">{{ consulta.diagnostico|linebreaksbr }}</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <p class="detail-label mb-1">Tratamiento</p>
+          <p class="mb-2">{{ consulta.tratamiento|linebreaksbr }}</p>
+          <p class="detail-label mb-1">Medicamentos</p>
+          <p class="mb-0">{{ consulta.medicamentos|default:"No prescritos"|linebreaksbr }}</p>
+        </div>
+      </div>
+      <div class="mt-3 small text-muted">
+        Próximo control: {{ consulta.proxima_cita|date:"d/m/Y"|default:"No programado" }}
+        {% if consulta.archivos_referencia %} · Referencias: {{ consulta.archivos_referencia }}{% endif %}
+      </div>
+      {% if consulta.notas.all %}
+        <hr>
+        <p class="detail-label mb-2">Notas posteriores</p>
+        {% for nota in consulta.notas.all %}
+          <div class="border-start ps-3 mb-2">
+            <p class="mb-1">{{ nota.contenido|linebreaksbr }}</p>
+            <p class="text-muted small mb-0">{{ nota.autor.get_full_name|default:nota.autor.username }} · {{ nota.fecha|date:"d/m/Y H:i" }}</p>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% if user.medico and consulta.medico_id == user.medico.pk %}
+        <a class="btn btn-sm btn-outline-success mt-2" href="{% url 'consultas:agregar_nota' consulta.pk %}">Agregar nota</a>
+      {% endif %}
+    </div>
+  </div>
+{% empty %}
+  <div class="alert alert-info">Este paciente aún no tiene consultas registradas.</div>
+{% endfor %}
+<p class="small text-muted mt-3">Este acceso quedó registrado en la auditoría médica: usuario, paciente, fecha, IP y recurso.</p>
+{% endblock %}

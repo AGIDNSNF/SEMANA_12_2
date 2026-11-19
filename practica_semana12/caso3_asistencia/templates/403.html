@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Acceso denegado{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm text-center">
+      <div class="card-body p-5">
+        <div class="display-5 mb-2">🔒</div>
+        <h1 class="h3 fw-bold">Acceso denegado</h1>
+        <p class="text-muted">Su rol no tiene autorización para consultar este recurso o realizar esta acción.</p>
+        <p class="small text-muted mb-4">El intento quedó registrado en la auditoría de asistencia.</p>
+        <a class="btn btn-primary" href="{% url 'asistencia:dashboard' %}">Volver a mi panel</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

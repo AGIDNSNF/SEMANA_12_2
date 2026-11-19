@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block titulo %}Panel · TecnoAndes{% endblock %}
+{% block contenido %}
+<div class="hero-empresa p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+      <p class="text-white-50 small mb-1">{{ rol }} · {{ hoy|date:"l d \d\e F \d\e Y" }}</p>
+      <h1 class="h3 fw-bold mb-1">Hola, {{ user.first_name|default:user.username }}</h1>
+      {% if propio %}
+        <p class="mb-0 text-white-50">{{ propio.cargo }} · {{ propio.area.nombre }}</p>
+      {% else %}
+        <p class="mb-0 text-white-50">Panel de gestión institucional</p>
+      {% endif %}
+    </div>
+    {% if propio %}
+      <form method="post" action="{% url 'asistencia:marcar_asistencia' %}">
+        {% csrf_token %}
+        {% if not registro_hoy or not registro_hoy.hora_entrada %}
+          <button class="btn btn-warning fw-semibold" type="submit">Registrar entrada</button>
+        {% elif not registro_hoy.hora_salida %}
+          <button class="btn btn-light fw-semibold" type="submit">Registrar salida</button>
+        {% else %}
+          <span class="badge text-bg-success fs-6">Jornada registrada</span>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if propio %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card stat-card h-100"><div class="card-body">
+        <p class="detail-label mb-1">Mi marcación de hoy</p>
+        {% if registro_hoy %}
+          <div class="d-flex gap-2 mb-2">
+            <span class="time-chip">Entrada {{ registro_hoy.hora_entrada|time:"H:i"|default:"—" }}</span>
+            <span class="time-chip">Salida {{ registro_hoy.hora_salida|time:"H:i"|default:"—" }}</span>
+          </div>
+          <p class="small text-muted mb-0">
+            Horas: <strong>{{ registro_hoy.total_horas }}</strong>
+            {% if registro_hoy.tiene_extra %} · Extra: <strong class="text-warning">{{ registro_hoy.total_extra }}</strong>{% endif %}
+          </p>
+        {% else %}
+          <p class="text-muted small mb-0">Aún no registra su entrada de hoy.</p>
+        {% endif %}
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card h-100" style="border-left-color:#d97706"><div class="card-body">
+        <p class="detail-label mb-1">Saldo de permisos y vacaciones</p>
+        <p class="stat-value text-warning mb-1">{{ saldo_disponible }}</p>
+        <p class="small text-muted mb-0">de {{ saldo_anual }} días anuales</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card h-100" style="border-left-color:#15803d"><div class="card-body">
+        <p class="detail-label mb-1">Solicitudes registradas</p>
+        <p class="stat-value text-success mb-1">{{ solicitudes_propias|length }}</p>
+        <p class="small text-muted mb-0">Últimas solicitudes</p>
+      </div></div>
+    </div>
+  </div>
+{% endif %}
+
+{% if rol == 'Recursos Humanos' or rol == 'Administrador' %}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-xl-2"><div class="card stat-card"><div class="card-body">
+      <p class="detail-label mb-1">Empleados</p><p class="stat-value mb-0">{{ total_empleados }}</p>
+    </div></div></div>
+    <div class="col-6 col-xl-2"><div class="card stat-card" style="border-left-color:#15803d"><div class="card-body">
+      <p class="detail-label mb-1">Presentes hoy</p><p class="stat-value mb-0">{{ presentes_hoy }}</p>
+    </div></div></div>
+    <div class="col-6 col-xl-2"><div class="card stat-card" style="border-left-color:#b91c1c"><div class="card-body">
+      <p class="detail-label mb-1">Sin registro hoy</p><p class="stat-value mb-0">{{ sin_registro_hoy }}</p>
+    </div></div></div>
+    <div class="col-6 col-xl-2"><div class="card stat-card" style="border-left-color:#d97706"><div class="card-body">
+      <p class="detail-label mb-1">Pendientes</p><p class="stat-value mb-0">{{ pendientes_total }}</p>
+    </div></div></div>
+    <div class="col-6 col-xl-2"><div class="card stat-card" style="border-left-color:#7c3aed"><div class="card-body">
+      <p class="detail-label mb-1">Áreas</p><p class="stat-value mb-0">{{ total_areas }}</p>
+    </div></div></div>
+  </div>
+{% elif rol == 'Contador' %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card stat-card"><div class="card-body">
+      <p class="detail-label mb-1">Empleados activos</p><p class="stat-value mb-0">{{ total_empleados }}</p>
+    </div></div></div>
+    <div class="col-md-4"><div class="card stat-card" style="border-left-color:#15803d"><div class="card-body">
+      <p class="detail-label mb-1">Horas del mes</p><p class="stat-value mb-0">{{ horas_mes }}</p>
+    </div></div></div>
+    <div class="col-md-4"><div class="card stat-card" style="border-left-color:#d97706"><div class="card-body">
+      <p class="detail-label mb-1">Horas extra del mes</p><p class="stat-value mb-0">{{ extra_mes }}</p>
+    </div></div></div>
+  </div>
+{% endif %}
+
+<div class="row g-4">
+  {% if propio %}
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Mis últimas marcaciones</span>
+          <a class="small" href="{% url 'asistencia:mis_registros' %}">Ver todas</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Extra</th></tr></thead>
+            <tbody>
+              {% for registro in ultimos_registros %}
+                <tr>
+                  <td class="small">{{ registro.fecha|date:"d/m/Y" }}</td>
+                  <td class="small">{{ registro.hora_entrada|time:"H:i"|default:"—" }}</td>
+                  <td class="small">{{ registro.hora_salida|time:"H:i"|default:"—" }}</td>
+                  <td class="small fw-semibold">{{ registro.total_horas }}</td>
+                  <td class="small">{% if registro.tiene_extra %}<span class="badge text-bg-warning">{{ registro.total_extra }}</span>{% else %}0.00{% endif %}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Sin marcaciones registradas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Mis solicitudes recientes</span>
+          <a class="small" href="{% url 'asistencia:solicitud_crear' %}">Nueva</a>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for solicitud in solicitudes_propias %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <a class="fw-semibold text-decoration-none" href="{% url 'asistencia:solicitud_detalle' solicitud.pk %}">{{ solicitud.get_tipo_display }}</a>
+                <div class="small text-muted">{{ solicitud.fecha_inicio|date:"d/m/Y" }} – {{ solicitud.fecha_fin|date:"d/m/Y" }} · {{ solicitud.dias_solicitados }} día(s)</div>
+              </div>
+              <span class="badge text-bg-{{ solicitud.estado_visual }}">{{ solicitud.get_estado_display }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted small">Aún no registra solicitudes.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if rol == 'Jefe de área' %}
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header bg-white fw-semibold">Solicitudes pendientes de mi área</div>
+        <ul class="list-group list-group-flush">
+          {% for solicitud in solicitudes_por_resolver %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <a class="text-decoration-none fw-semibold" href="{% url 'asistencia:solicitud_detalle' solicitud.pk %}">{{ solicitud.empleado.nombre_completo }}</a>
+                <div class="small text-muted">{{ solicitud.get_tipo_display }} · {{ solicitud.fecha_inicio|date:"d/m/Y" }} – {{ solicitud.fecha_fin|date:"d/m/Y" }}</div>
+              </div>
+              <span class="badge text-bg-warning">{{ solicitud.dias_solicitados }} día(s)</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted small">No hay solicitudes pendientes.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card h-100"><div class="card-body">
+        <p class="detail-label mb-1">Empleados en mis áreas</p>
+        <p class="stat-value text-primary mb-2">{{ equipo|length }}</p>
+        {% for area in areas %}<span class="badge text-bg-light border me-1 mb-1">{{ area.nombre }}</span>{% endfor %}
+        <hr>
+        <a class="btn btn-outline-primary btn-sm w-100" href="{% url 'asistencia:registros' %}">Revisar asistencia del equipo</a>
+      </div></div>
+    </div>
+  {% endif %}
+
+  {% if rol == 'Recursos Humanos' or rol == 'Administrador' %}
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-white fw-semibold">Auditoría reciente</div>
+        <ul class="list-group list-group-flush">
+          {% for evento in auditoria_reciente %}
+            <li class="list-group-item d-flex justify-content-between small">
+              <span>{{ evento.get_accion_display }}{% if evento.empleado %} · {{ evento.empleado.nombre_completo }}{% endif %}</span>
+              <span class="text-muted">{{ evento.fecha|date:"d/m H:i" }}</span>
+            </li>
+          {% empty %}<li class="list-group-item text-muted small">Sin eventos.</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100"><div class="card-body">
+        <p class="fw-semibold mb-2">Acciones de RRHH</p>
+        <div class="d-grid gap-2">
+          <a class="btn btn-outline-primary" href="{% url 'asistencia:registros' %}">Revisar y corregir asistencias</a>
+          <a class="btn btn-outline-warning" href="{% url 'asistencia:solicitudes' %}?estado=pendiente">Resolver solicitudes pendientes</a>
+          <a class="btn btn-outline-secondary" href="{% url 'asistencia:empleados' %}">Gestionar empleados</a>
+        </div>
+      </div></div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

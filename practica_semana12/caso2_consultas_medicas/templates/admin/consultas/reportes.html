@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Inicio</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label='consultas' %}">Consultas</a>
+  &rsaquo; <a href="{% url 'admin:consultas_cita_changelist' %}">Citas</a>
+  &rsaquo; Reportes
+</div>
+{% endblock %}
+{% block content %}
+<h1>Estadísticas del Centro Médico</h1>
+
+<div class="module" style="padding:1rem; margin-bottom:1rem;">
+  <strong>Citas totales:</strong> {{ total_citas }} &nbsp;|&nbsp;
+  <strong>Consultas registradas:</strong> {{ total_consultas }}
+</div>
+
+<div class="module" style="margin-bottom:1rem;">
+  <h2>Citas por especialidad</h2>
+  <table style="width:100%;">
+    <thead><tr><th>Especialidad</th><th>Citas</th></tr></thead>
+    <tbody>
+      {% for fila in por_especialidad %}
+        <tr><td>{{ fila.nombre }}</td><td>{{ fila.total }}</td></tr>
+      {% empty %}<tr><td colspan="2">Sin datos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module" style="margin-bottom:1rem;">
+  <h2>Citas por estado</h2>
+  <table style="width:100%;">
+    <thead><tr><th>Estado</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for fila in por_estado %}
+        <tr><td>{{ fila.estado }}</td><td>{{ fila.total }}</td></tr>
+      {% empty %}<tr><td colspan="2">Sin datos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module" style="margin-bottom:1rem;">
+  <h2>Médicos con más consultas</h2>
+  <table style="width:100%;">
+    <thead><tr><th>Médico</th><th>Especialidad</th><th>Consultas</th></tr></thead>
+    <tbody>
+      {% for medico in top_medicos %}
+        <tr><td>{{ medico.nombre_completo }}</td><td>{{ medico.especialidad.nombre }}</td><td>{{ medico.total }}</td></tr>
+      {% empty %}<tr><td colspan="3">Sin datos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="module" style="margin-bottom:1rem;">
+  <h2>Pacientes frecuentes</h2>
+  <table style="width:100%;">
+    <thead><tr><th>Paciente</th><th>DNI</th><th>Citas</th></tr></thead>
+    <tbody>
+      {% for paciente in pacientes_frecuentes %}
+        <tr><td>{{ paciente.nombre_completo }}</td><td>{{ paciente.dni }}</td><td>{{ paciente.total }}</td></tr>
+      {% empty %}<tr><td colspan="3">Sin datos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<a class="button" href="{% url 'admin:consultas_cita_changelist' %}">Volver a citas</a>
+<a class="button" href="{% url 'admin:consultas_cita_agenda' %}">Agenda diaria</a>
+{% endblock %}

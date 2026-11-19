@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block titulo %}{{ equipo.nombre }} · Catálogo{% endblock %}
+{% block contenido %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'prestamos:catalogo' %}">Catálogo</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ equipo.codigo_patrimonial }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <p class="text-muted small mb-1">{{ equipo.categoria }} · {{ equipo.marca }}</p>
+            <h1 class="h3 fw-bold mb-1">{{ equipo.nombre }}</h1>
+            <p class="text-muted mb-0">Código patrimonial {{ equipo.codigo_patrimonial }}</p>
+          </div>
+          <span class="badge badge-estado {{ equipo.estado_visual.clase }} fs-6">{{ equipo.estado_visual.texto }}</span>
+        </div>
+        <hr>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Modelo</p>
+            <p class="mb-0">{{ equipo.modelo|default:"No registrado" }}</p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Laboratorio</p>
+            <p class="mb-0">{{ equipo.laboratorio.nombre }} · {{ equipo.laboratorio.ubicacion }}</p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Stock total</p>
+            <p class="mb-0">{{ equipo.stock_total }} unidad(es)</p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Disponibilidad</p>
+            <p class="mb-0"><span class="badge {{ equipo.disponible_visual.clase }}">{{ equipo.disponible_visual.texto }}</span></p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Último mantenimiento</p>
+            <p class="mb-0">
+              {{ equipo.fecha_ultimo_mantenimiento|date:"d/m/Y"|default:"Sin registro" }}
+              {% if equipo.dias_desde_ultimo_mantenimiento is not None %}
+                <span class="text-muted small">(hace {{ equipo.dias_desde_ultimo_mantenimiento }} días)</span>
+              {% endif %}
+            </p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Préstamos que ocupan stock</p>
+            <p class="mb-0">{{ prestamos_activos }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body p-4">
+        <h2 class="h6 fw-bold">¿Necesita este equipo?</h2>
+        <p class="small text-muted">Los docentes pueden solicitar préstamos desde el sistema; el personal asistente valida la entrega en el laboratorio.</p>
+        {% if user.is_authenticated %}
+          {% if rol_actual == 'Docente' or rol_actual == 'Administrador' %}
+            <a class="btn btn-primary w-100" href="{% url 'prestamos:solicitar_prestamo' %}">Solicitar préstamo</a>
+          {% else %}
+            <div class="alert alert-info small mb-0">Su rol es de consulta. Para prestar equipos acuda a la ventanilla del laboratorio.</div>
+          {% endif %}
+        {% else %}
+          <a class="btn btn-primary w-100" href="{% url 'prestamos:login' %}">Iniciar sesión para solicitar</a>
+          <p class="small text-muted mt-2 mb-0">El catálogo es público; las solicitudes requieren una cuenta institucional.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-body small text-muted">
+        <p class="fw-semibold mb-1">Laboratorio</p>
+        <p class="mb-1">{{ equipo.laboratorio.descripcion|default:"Sin descripción." }}</p>
+        <p class="mb-0">Estado del laboratorio: {% if equipo.laboratorio.activo %}Activo{% else %}Inactivo{% endif %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

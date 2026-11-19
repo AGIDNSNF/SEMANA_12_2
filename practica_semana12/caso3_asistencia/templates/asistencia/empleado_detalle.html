@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}{{ empleado.nombre_completo }}{% endblock %}
+{% block contenido %}
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <p class="text-muted small mb-1">Ficha del empleado</p>
+        <h1 class="h4 fw-bold mb-1">{{ empleado.nombre_completo }}</h1>
+        <p class="text-muted mb-0">DNI {{ empleado.dni }} · {{ empleado.cargo }} · {{ empleado.area.nombre }}</p>
+      </div>
+      <div class="d-flex gap-2">
+        {% if puede_editar %}
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'asistencia:empleado_editar' empleado.pk %}">Editar</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'asistencia:empleados' %}">Volver</a>
+      </div>
+    </div>
+    <hr>
+    <div class="row g-3 small">
+      <div class="col-sm-3"><p class="detail-label mb-0">Correo</p><p class="mb-0">{{ empleado.email }}</p></div>
+      <div class="col-sm-3"><p class="detail-label mb-0">Ingreso</p><p class="mb-0">{{ empleado.fecha_ingreso|date:"d/m/Y" }}</p></div>
+      <div class="col-sm-3"><p class="detail-label mb-0">Jefe de área</p><p class="mb-0">{{ empleado.area.jefe.nombre_completo|default:"No asignado" }}</p></div>
+      <div class="col-sm-3"><p class="detail-label mb-0">Saldo disponible</p><p class="mb-0 fw-semibold">{{ saldo_disponible }} día(s)</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Últimas asistencias</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Extra</th></tr></thead>
+          <tbody>
+            {% for registro in registros %}
+              <tr>
+                <td class="small">{{ registro.fecha|date:"d/m/Y" }}</td>
+                <td class="small">{{ registro.hora_entrada|time:"H:i"|default:"—" }}</td>
+                <td class="small">{{ registro.hora_salida|time:"H:i"|default:"—" }}</td>
+                <td class="small fw-semibold">{{ registro.total_horas }}</td>
+                <td class="small">{% if registro.tiene_extra %}<span class="badge text-bg-warning">{{ registro.total_extra }}</span>{% else %}0.00{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">Sin registros.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Solicitudes</div>
+      <ul class="list-group list-group-flush">
+        {% for solicitud in solicitudes %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a class="text-decoration-none" href="{% url 'asistencia:solicitud_detalle' solicitud.pk %}">{{ solicitud.get_tipo_display }}</a>
+              <div class="small text-muted">{{ solicitud.fecha_inicio|date:"d/m/Y" }} – {{ solicitud.fecha_fin|date:"d/m/Y" }}</div>
+            </div>
+            <span class="badge text-bg-{{ solicitud.estado_visual }}">{{ solicitud.get_estado_display }}</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted small">Sin solicitudes registradas.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block titulo %}Panel · Préstamos UNCP{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+  <div>
+    <p class="text-muted small mb-1">Panel de control · {{ rol }}</p>
+    <h1 class="h3 fw-bold mb-0">Hola, {{ user.first_name|default:user.username }}</h1>
+  </div>
+  <div class="d-flex gap-2">
+    {% if rol_actual == 'Docente' or rol_actual == 'Administrador' %}
+      <a class="btn btn-primary btn-sm" href="{% url 'prestamos:solicitar_prestamo' %}">Solicitar préstamo</a>
+    {% endif %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'prestamos:catalogo' %}">Ver catálogo</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <p class="detail-label mb-1">Préstamos activos</p>
+      <p class="stat-value text-primary mb-1">{{ estadisticas.activos }}</p>
+      <p class="small text-muted mb-0">En poder de los docentes</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#fd7e14"><div class="card-body">
+      <p class="detail-label mb-1">Pendientes</p>
+      <p class="stat-value text-warning mb-1">{{ estadisticas.pendientes }}</p>
+      <p class="small text-muted mb-0">Solicitudes por aprobar</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#dc3545"><div class="card-body">
+      <p class="detail-label mb-1">Vencidos</p>
+      <p class="stat-value text-danger mb-1">{{ estadisticas.vencidos }}</p>
+      <p class="small text-muted mb-0">Requieren seguimiento</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#198754"><div class="card-body">
+      <p class="detail-label mb-1">Devueltos</p>
+      <p class="stat-value text-success mb-1">{{ estadisticas.devueltos }}</p>
+      <p class="small text-muted mb-0">Historial concluido</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100"><div class="card-body">
+      <p class="detail-label mb-1">Equipos operativos</p>
+      <p class="h4 fw-bold mb-0">{{ equipos_operativos }}</p>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100"><div class="card-body">
+      <p class="detail-label mb-1">Unidades disponibles</p>
+      <p class="h4 fw-bold mb-0">{{ unidades_disponibles }}</p>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100"><div class="card-body">
+      <p class="detail-label mb-1">Laboratorios activos</p>
+      <p class="h4 fw-bold mb-0">{{ laboratorios }}</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Próximos vencimientos</span>
+        {% if perms.prestamos.change_prestamo %}
+          <a class="small" href="{% url 'prestamos:lista_prestamos' %}?estado=activo">Ver todos</a>
+        {% else %}
+          <a class="small" href="{% url 'prestamos:mis_prestamos' %}">Ver mis préstamos</a>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Equipo</th><th>Docente</th><th>Prevista</th><th>Estado</th></tr></thead>
+          <tbody>
+            {% for prestamo in proximos_vencer %}
+              <tr>
+                <td>
+                  <a class="text-decoration-none fw-semibold" href="{% url 'prestamos:prestamo_detalle' prestamo.pk %}">
+                    {{ prestamo.equipo.nombre }}
+                  </a>
+                  <div class="small text-muted">{{ prestamo.equipo.codigo_patrimonial }}</div>
+                </td>
+                <td class="small">{{ prestamo.docente.get_full_name|default:prestamo.docente.username }}</td>
+                <td class="small">{{ prestamo.fecha_prevista_devolucion|date:"d/m/Y" }}</td>
+                <td><span class="badge badge-estado {{ prestamo.estado_visual }}">{{ prestamo.get_estado_display }}</span></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No hay préstamos por vencer.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Últimos movimientos</div>
+      <ul class="list-group list-group-flush">
+        {% for prestamo in ultimos %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a class="text-decoration-none small fw-semibold" href="{% url 'prestamos:prestamo_detalle' prestamo.pk %}">
+                #{{ prestamo.pk }} · {{ prestamo.equipo.codigo_patrimonial }}
+              </a>
+              <div class="text-muted small">{{ prestamo.fecha_creacion|date:"d/m/Y H:i" }}</div>
+            </div>
+            <span class="badge badge-estado {{ prestamo.estado_visual }}">{{ prestamo.get_estado_display }}</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted text-center py-4">Sin movimientos registrados.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% if rol_actual == 'Administrador' %}
+<div class="row g-4 mt-1">
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <p class="detail-label mb-1">Usuarios activos</p>
+      <p class="h4 fw-bold mb-0">{{ total_usuarios }}</p>
+      <a class="small" href="{% url 'admin:auth_user_changelist' %}">Gestionar usuarios</a>
+    </div></div>
+  </div>
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span class="fw-semibold">Auditoría reciente</span>
+        <a class="small" href="{% url 'prestamos:auditoria' %}">Ver todo</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr></thead>
+          <tbody>
+            {% for evento in auditoria_reciente %}
+              <tr>
+                <td class="small">{{ evento.fecha_hora|date:"d/m H:i" }}</td>
+                <td class="small">{{ evento.usuario|default:"anónimo" }}</td>
+                <td class="small">{{ evento.get_accion_display }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-muted text-center py-3">Sin eventos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools-items %}
+  <li><a href="{% url 'admin:consultas_cita_agenda' %}" class="addlink">Agenda diaria</a></li>
+  <li><a href="{% url 'admin:consultas_cita_reportes' %}" class="addlink">Reportes y estadísticas</a></li>
+  {{ block.super }}
+{% endblock %}

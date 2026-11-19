@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Registrar devolución{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">Registrar devolución</h1>
+        <p class="small text-muted mb-0">Préstamo #{{ prestamo.pk }} · {{ prestamo.equipo.nombre }}</p>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Docente</p>
+            <p class="mb-0">{{ prestamo.docente.get_full_name|default:prestamo.docente.username }}</p>
+          </div>
+          <div class="col-sm-3">
+            <p class="detail-label mb-0">Cantidad</p>
+            <p class="mb-0">{{ prestamo.cantidad }}</p>
+          </div>
+          <div class="col-sm-3">
+            <p class="detail-label mb-0">Prevista</p>
+            <p class="mb-0">{{ prestamo.fecha_prevista_devolucion|date:"d/m/Y" }}</p>
+          </div>
+        </div>
+        {% if prestamo.dias_retraso %}
+          <div class="alert alert-warning py-2 small">El préstamo lleva {{ prestamo.dias_retraso }} día(s) de retraso.</div>
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          {% endfor %}
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{% url 'prestamos:devoluciones_pendientes' %}">Cancelar</a>
+            <button class="btn btn-success" type="submit">Confirmar devolución</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="small text-muted mt-3 mb-0">La fecha se registra automáticamente; no es editable desde este formulario.</p>
+  </div>
+</div>
+{% endblock %}

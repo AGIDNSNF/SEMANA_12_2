@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitud #{{ solicitud.pk }}{% endblock %}
+{% block contenido %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'asistencia:dashboard' %}">Panel</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'asistencia:solicitudes' %}">Solicitudes</a></li>
+    <li class="breadcrumb-item active">Solicitud #{{ solicitud.pk }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+          <div>
+            <p class="text-muted small mb-1">Solicitud #{{ solicitud.pk }} · {{ solicitud.creado_en|date:"d/m/Y H:i" }}</p>
+            <h1 class="h4 fw-bold mb-1">{{ solicitud.get_tipo_display }}</h1>
+            <p class="text-muted mb-0">{{ solicitud.empleado.nombre_completo }} · {{ solicitud.empleado.area.nombre }}</p>
+          </div>
+          <span class="badge text-bg-{{ solicitud.estado_visual }} fs-6">{{ solicitud.get_estado_display }}</span>
+        </div>
+        <hr>
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <p class="detail-label mb-0">Fecha de inicio</p>
+            <p class="mb-0">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</p>
+          </div>
+          <div class="col-sm-4">
+            <p class="detail-label mb-0">Fecha de fin</p>
+            <p class="mb-0">{{ solicitud.fecha_fin|date:"d/m/Y" }}</p>
+          </div>
+          <div class="col-sm-4">
+            <p class="detail-label mb-0">Días hábiles</p>
+            <p class="mb-0">{{ solicitud.dias_solicitados }} ({{ solicitud.dias_calendario }} calendario)</p>
+          </div>
+          <div class="col-12">
+            <p class="detail-label mb-0">Motivo</p>
+            <p class="mb-0">{{ solicitud.motivo|linebreaksbr }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h2 class="h6 fw-bold">Revisión</h2>
+        {% if solicitud.revisado_por %}
+          <p class="mb-1">{{ solicitud.revisado_por.get_full_name|default:solicitud.revisado_por.username }} · {{ solicitud.fecha_revision|date:"d/m/Y H:i" }}</p>
+          <p class="mb-0 text-muted">{{ solicitud.comentario_revision|default:"Sin comentario." }}</p>
+        {% else %}
+          <p class="mb-0 text-muted">La solicitud aún no fue revisada.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 fw-bold">Acciones</h2>
+        {% if puede_resolver %}
+          <form method="post" action="{% url 'asistencia:resolver_solicitud' solicitud.pk %}">
+            {% csrf_token %}
+            <label class="form-label small" for="{{ form.comentario.id_for_label }}">Comentario de revisión</label>
+            {{ form.comentario }}
+            <div class="d-grid gap-2 mt-3">
+              <button class="btn btn-success" name="accion" value="aprobar" type="submit">Aprobar solicitud</button>
+              <button class="btn btn-outline-danger" name="accion" value="rechazar" type="submit">Rechazar solicitud</button>
+            </div>
+          </form>
+        {% elif puede_cancelar %}
+          <p class="small text-muted">Puede cancelar su solicitud mientras siga pendiente.</p>
+          <form method="post" action="{% url 'asistencia:cancelar_solicitud' solicitud.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-secondary w-100" type="submit">Cancelar solicitud</button>
+          </form>
+        {% else %}
+          <p class="small text-muted mb-0">No hay acciones disponibles para su rol en esta solicitud.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card mt-3"><div class="card-body small text-muted">
+      <p class="fw-semibold mb-1">Control de aprobación</p>
+      <p class="mb-0">El jefe solo puede resolver solicitudes de su área. RRHH puede resolver las de toda la empresa. El propio solicitante nunca puede aprobarse.</p>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

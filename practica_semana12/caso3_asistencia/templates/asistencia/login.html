@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión · TecnoAndes{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-center login-wrapper align-items-center py-4">
+  <div class="login-card">
+    <div class="card shadow-sm">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="brand-mark mx-auto mb-2" style="width:54px;height:54px;font-size:1.1rem;">TA</div>
+          <h1 class="h4 fw-bold mb-1">TecnoAndes S.A.C.</h1>
+          <p class="text-muted small mb-0">Control de asistencia y permisos</p>
+        </div>
+        {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}{{ form.username.errors }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            {{ form.password }}{{ form.password.errors }}
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-semibold">Ingresar</button>
+        </form>
+      </div>
+    </div>
+    <div class="card mt-3 border-0 bg-transparent">
+      <div class="card-body small text-muted">
+        <p class="fw-semibold mb-1">Acceso de demostración</p>
+        <p class="mb-1">Usuarios: <code>admin_asistencia</code>, <code>rrhh1</code>, <code>jefe_ti</code>, <code>contador1</code>, <code>empleado1</code>.</p>
+        <p class="mb-0">La contraseña se muestra al ejecutar <code>crear_datos_demo</code>. Todos los datos son ficticios.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

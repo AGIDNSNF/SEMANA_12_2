@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white"><h1 class="h5 fw-bold mb-0">{{ titulo }}</h1></div>
+      <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+              <div class="col-12 {% if field.name == 'dni' or field.name == 'fecha_nacimiento' or field.name == 'tipo' or field.name == 'codigo_uncp' %}col-md-6{% elif field.name == 'nombres' or field.name == 'apellidos' %}col-md-6{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="alert alert-light border mt-3 small text-muted mb-0">
+            Los estudiantes deben usar correo <strong>@uncp.edu.pe</strong>. El DNI debe tener 8 dígitos.
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-outline-secondary" href="{% url 'consultas:pacientes' %}">Cancelar</a>
+            <button class="btn btn-success" type="submit">Guardar paciente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

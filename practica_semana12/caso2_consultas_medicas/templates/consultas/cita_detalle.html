@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block titulo %}Cita #{{ cita.pk }}{% endblock %}
+{% block contenido %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'consultas:dashboard' %}">Panel</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'consultas:agenda' %}">Agenda</a></li>
+    <li class="breadcrumb-item active">Cita #{{ cita.pk }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+          <div>
+            <p class="text-muted small mb-1">Cita #{{ cita.pk }}</p>
+            <h1 class="h4 fw-bold mb-1">{{ cita.fecha|date:"l d \d\e F \d\e Y" }} · {{ cita.hora|time:"H:i" }}</h1>
+            <p class="text-muted mb-0">{{ cita.especialidad.nombre }} · {{ cita.medico.nombre_completo }}</p>
+          </div>
+          <span class="badge text-bg-{{ cita.estado_visual }} fs-6">{{ cita.get_estado_display }}</span>
+        </div>
+        <hr>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Paciente</p>
+            <p class="mb-0">{{ cita.paciente.nombre_completo }} · DNI {{ cita.paciente.dni }}</p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Consultorio</p>
+            <p class="mb-0">{{ cita.medico.consultorio }} · CMP {{ cita.medico.cmp }}</p>
+          </div>
+          <div class="col-12">
+            <p class="detail-label mb-0">Motivo de consulta</p>
+            <p class="mb-0">{{ cita.motivo|linebreaksbr }}</p>
+          </div>
+          <div class="col-sm-6">
+            <p class="detail-label mb-0">Registrada</p>
+            <p class="mb-0">{{ cita.fecha_creacion|date:"d/m/Y H:i" }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if consulta %}
+      <div class="card mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Consulta registrada</span>
+          <a class="small" href="{% url 'consultas:historial' cita.paciente.pk %}">Ver historial completo</a>
+        </div>
+        <div class="card-body">
+          <div class="clinical-block mb-3">
+            <p class="detail-label mb-1">Diagnóstico</p>
+            <p class="mb-0">{{ consulta.diagnostico|linebreaksbr }}</p>
+          </div>
+          <div class="mb-3">
+            <p class="detail-label mb-1">Tratamiento</p>
+            <p class="mb-0">{{ consulta.tratamiento|linebreaksbr }}</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <p class="detail-label mb-1">Medicamentos</p>
+              <p class="mb-0">{{ consulta.medicamentos|default:"No se prescribieron medicamentos."|linebreaksbr }}</p>
+            </div>
+            <div class="col-md-6">
+              <p class="detail-label mb-1">Próximo control</p>
+              <p class="mb-0">{{ consulta.proxima_cita|date:"d/m/Y"|default:"No programado" }}</p>
+            </div>
+          </div>
+          {% if consulta.notas.all %}
+            <hr>
+            <p class="detail-label mb-2">Notas posteriores</p>
+            {% for nota in consulta.notas.all %}
+              <div class="border-start ps-3 mb-2">
+                <p class="mb-1 small">{{ nota.contenido|linebreaksbr }}</p>
+                <p class="text-muted small mb-0">{{ nota.autor.get_full_name|default:nota.autor.username }} · {{ nota.fecha|date:"d/m/Y H:i" }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% if puede_nota %}
+            <a class="btn btn-sm btn-outline-success mt-2" href="{% url 'consultas:agregar_nota' consulta.pk %}">Agregar nota clínica</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 fw-bold">Acciones</h2>
+        {% if puede_consulta %}
+          <a class="btn btn-success w-100 mb-2" href="{% url 'consultas:registrar_consulta' cita.pk %}">Registrar consulta</a>
+        {% endif %}
+        {% if puede_confirmar %}
+          <form method="post" action="{% url 'consultas:confirmar_cita' cita.pk %}" class="mb-2">
+            {% csrf_token %}
+            <button class="btn btn-primary w-100" type="submit">Confirmar cita</button>
+          </form>
+        {% endif %}
+        {% if puede_cancelar %}
+          <button class="btn btn-outline-danger w-100" type="button" data-bs-toggle="collapse" data-bs-target="#cancelarCita">Cancelar cita</button>
+          <div class="collapse mt-2" id="cancelarCita">
+            <form method="post" action="{% url 'consultas:cancelar_cita' cita.pk %}">
+              {% csrf_token %}
+              <label class="form-label small" for="motivoCancelacion">Motivo (opcional)</label>
+              <textarea class="form-control" id="motivoCancelacion" name="motivo" rows="2" maxlength="200"></textarea>
+              <button class="btn btn-danger btn-sm w-100 mt-2" type="submit">Confirmar cancelación</button>
+            </form>
+          </div>
+        {% endif %}
+        {% if not puede_consulta and not puede_confirmar and not puede_cancelar %}
+          <p class="small text-muted mb-0">No hay acciones disponibles para su rol en esta cita.</p>
+        {% endif %}
+        {% if consulta %}
+          <hr>
+          <a class="btn btn-outline-secondary w-100" href="{% url 'consultas:historial' cita.paciente.pk %}">Abrir historial</a>
+          <p class="small text-muted mt-2 mb-0">El acceso al historial será registrado en la auditoría médica.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card mt-3"><div class="card-body small text-muted">
+      <p class="fw-semibold mb-1">Privacidad</p>
+      <p class="mb-0">Los diagnósticos y tratamientos solo son visibles para el paciente y el personal médico autorizado.</p>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

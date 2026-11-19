@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block titulo %}Médicos{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Médicos</h1>
+    <p class="text-muted small mb-0">Especialidades, consultorios y consultas registradas.</p>
+  </div>
+  {% if perms.consultas.add_medico %}
+    <a class="btn btn-success btn-sm" href="{% url 'consultas:medico_crear' %}">Registrar médico</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>CMP</th><th>Médico</th><th>Especialidad</th><th>Consultorio</th><th>Consultas</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        {% for medico in page_obj %}
+          <tr>
+            <td class="small">{{ medico.cmp }}</td>
+            <td class="fw-semibold">{{ medico.nombre_completo }}</td>
+            <td class="small">{{ medico.especialidad.nombre }}</td>
+            <td class="small">{{ medico.consultorio }}</td>
+            <td><span class="badge text-bg-secondary">{{ medico.total_consultas }}</span></td>
+            <td>{% if medico.activo %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Inactivo</span>{% endif %}</td>
+            <td>
+              {% if perms.consultas.change_medico %}
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'consultas:medico_editar' medico.pk %}">Editar</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Sin médicos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacion.html" %}
+{% endblock %}

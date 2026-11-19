@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block titulo %}Agendar cita{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">Agendar cita médica</h1>
+        <p class="small text-muted mb-0">La cita queda pendiente hasta su confirmación. Duración estándar: 30 minutos.</p>
+      </div>
+      <div class="card-body">
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+              <div class="col-12 {% if field.name == 'fecha' or field.name == 'hora' %}col-md-6{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="alert alert-light border mt-3 small text-muted mb-0">
+            <strong>Horario de atención:</strong> lunes a viernes 08:00–18:00, sábados 08:00–13:00, domingos cerrado.
+            El médico debe tener disponibilidad registrada para la fecha elegida.
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-outline-secondary" href="{% url 'consultas:agenda' %}">Cancelar</a>
+            <button class="btn btn-success" type="submit">Registrar cita</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ medicos_json|json_script:"medicos-data" }}
+{% endblock %}
+{% block extra_js %}
+<script>
+  const mapaMedicos = JSON.parse(document.getElementById('medicos-data').textContent);
+  const selectEspecialidad = document.getElementById('id_especialidad');
+  const selectMedico = document.getElementById('id_medico');
+  function filtrarMedicos() {
+    if (!selectEspecialidad || !selectMedico) return;
+    const especialidad = selectEspecialidad.value;
+    Array.from(selectMedico.options).forEach(function (opcion) {
+      if (!opcion.value) return;
+      const coincide = String(mapaMedicos[opcion.value]) === String(especialidad);
+      opcion.hidden = Boolean(especialidad) && !coincide;
+      opcion.disabled = Boolean(especialidad) && !coincide;
+    });
+    const seleccionada = selectMedico.selectedOptions[0];
+    if (seleccionada && seleccionada.hidden) { selectMedico.value = ''; }
+  }
+  if (selectEspecialidad && selectMedico) {
+    selectEspecialidad.addEventListener('change', filtrarMedicos);
+    filtrarMedicos();
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitudes{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Solicitudes de permisos y vacaciones</h1>
+    <p class="text-muted small mb-0">Cada solicitud requiere revisión del jefe del área o de RRHH. Nadie puede aprobar su propia solicitud.</p>
+  </div>
+  {% if puede_crear %}
+    <a class="btn btn-primary btn-sm" href="{% url 'asistencia:solicitud_crear' %}">Nueva solicitud</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card card-body mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3"><label class="form-label small">Estado</label>{{ form.estado }}</div>
+    <div class="col-md-3"><label class="form-label small">Tipo</label>{{ form.tipo }}</div>
+    <div class="col-md-3"><label class="form-label small">Área</label>{{ form.area }}</div>
+    <div class="col-md-3 d-flex gap-2">
+      <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+      <a class="btn btn-outline-secondary" href="{% url 'asistencia:solicitudes' %}">Limpiar</a>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Empleado</th><th>Área</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Días hábiles</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        {% for solicitud in page_obj %}
+          <tr>
+            <td class="small fw-semibold">{{ solicitud.empleado.nombre_completo }}</td>
+            <td class="small">{{ solicitud.empleado.area.nombre }}</td>
+            <td class="small">{{ solicitud.get_tipo_display }}</td>
+            <td class="small">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</td>
+            <td class="small">{{ solicitud.fecha_fin|date:"d/m/Y" }}</td>
+            <td class="small"><span class="badge text-bg-light border">{{ solicitud.dias_solicitados }}</span></td>
+            <td><span class="badge text-bg-{{ solicitud.estado_visual }}">{{ solicitud.get_estado_display }}</span></td>
+            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'asistencia:solicitud_detalle' solicitud.pk %}">Detalle</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No hay solicitudes con los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacion.html" %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva solicitud{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">Nueva solicitud</h1>
+        <p class="small text-muted mb-0">Permisos y vacaciones consumen el saldo anual de 30 días hábiles.</p>
+      </div>
+      <div class="card-body">
+        {% if saldo_disponible is not None %}
+          <div class="jornada-box mb-3 small">Saldo disponible este año: <strong>{{ saldo_disponible }} día(s) hábil(es)</strong>.</div>
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          {% endfor %}
+          <div class="alert alert-light border small text-muted">
+            No se permiten solicitudes superpuestas ni fechas pasadas. La solicitud inicia en un día hábil.
+          </div>
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{% url 'asistencia:solicitudes' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Enviar solicitud</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

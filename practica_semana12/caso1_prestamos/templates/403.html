@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Acceso denegado{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm text-center">
+      <div class="card-body p-5">
+        <div class="display-5 mb-2">🔒</div>
+        <h1 class="h3 fw-bold">Acceso denegado</h1>
+        <p class="text-muted">Su rol no tiene permisos para realizar esta acción o el registro solicitado no le pertenece.</p>
+        <p class="small text-muted mb-4">El intento quedó registrado en la auditoría del sistema.</p>
+        <a class="btn btn-primary" href="{% url 'prestamos:catalogo' %}">Volver al catálogo</a>
+        {% if user.is_authenticated %}
+          <a class="btn btn-outline-secondary" href="{% url 'prestamos:dashboard' %}">Ir a mi panel</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

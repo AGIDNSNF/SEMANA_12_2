@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Registrar consulta{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">Registrar consulta médica</h1>
+        <p class="small text-muted mb-0">
+          Cita #{{ cita.pk }} · {{ cita.paciente.nombre_completo }} · {{ cita.fecha|date:"d/m/Y" }} {{ cita.hora|time:"H:i" }}
+        </p>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning small">
+          La consulta es <strong>inmutable</strong> una vez registrada. Para ampliar información use notas clínicas posteriores.
+        </div>
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          {% endfor %}
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{% url 'consultas:cita_detalle' cita.pk %}">Cancelar</a>
+            <button class="btn btn-success" type="submit">Registrar consulta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Centro Médico UNCP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-medico shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{% url 'consultas:inicio' %}">
+      <span class="brand-mark">+</span> Centro Médico UNCP
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
+            aria-controls="navPrincipal" aria-expanded="false" aria-label="Mostrar navegación">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navPrincipal">
+      <ul class="navbar-nav me-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'consultas:dashboard' %}">Panel</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'consultas:agenda' %}">Agenda</a></li>
+          {% if rol_actual == 'Pacientes' or rol_actual == 'Recepcionistas' or rol_actual == 'Admins' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:agendar_cita' %}">Agendar cita</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav align-items-lg-center">
+        {% if citas_pendientes_medico %}
+          <li class="nav-item me-lg-2">
+            <a class="nav-link text-warning fw-semibold" href="{% url 'consultas:agenda' %}">
+              ● {{ citas_pendientes_medico }} cita(s)
+            </a>
+          </li>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ user.get_full_name|default:user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text small text-muted">{{ rol_actual }}</span></li>
+              <li><hr class="dropdown-divider"></li>
+              {% if user.is_staff %}
+                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Administración Django</a></li>
+              {% endif %}
+              <li>
+                <form method="post" action="{% url 'consultas:logout' %}" class="px-3 py-1">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">Cerrar sesión</button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="btn btn-light btn-sm text-success fw-semibold px-3" href="{% url 'consultas:login' %}">Iniciar sesión</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid flex-grow-1">
+  <div class="row g-0">
+    {% if user.is_authenticated %}
+      <aside class="col-lg-2 d-none d-lg-block sidebar py-4 px-3">
+        <p class="text-uppercase small text-muted fw-bold mb-2">Menú · {{ rol_actual }}</p>
+        <ul class="nav nav-pills flex-column gap-1">
+          <li class="nav-item"><a class="nav-link" href="{% url 'consultas:dashboard' %}">Panel</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'consultas:agenda' %}">Agenda de citas</a></li>
+          {% if rol_actual == 'Pacientes' or rol_actual == 'Recepcionistas' or rol_actual == 'Admins' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:agendar_cita' %}">Agendar cita</a></li>
+          {% endif %}
+          {% if rol_actual == 'Pacientes' %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:historial' user.paciente.pk %}">Mi historial</a></li>
+          {% endif %}
+          {% if perms.consultas.view_paciente %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:pacientes' %}">Pacientes</a></li>
+          {% endif %}
+          {% if perms.consultas.view_medico %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:medicos' %}">Médicos</a></li>
+          {% endif %}
+          {% if perms.consultas.generar_reportes %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'consultas:reportes' %}">Reportes</a></li>
+          {% endif %}
+          {% if user.is_staff %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin Django</a></li>
+          {% endif %}
+        </ul>
+        <hr>
+        <div class="small text-muted">
+          <p class="mb-1 fw-semibold">Confidencialidad</p>
+          <p class="mb-0">El acceso a historiales queda auditado. Sesión: 20 minutos de inactividad.</p>
+        </div>
+      </aside>
+      <main class="col-lg-10 px-3 px-lg-4 py-4">
+    {% else %}
+      <main class="col-12 px-0">
+    {% endif %}
+        <div class="{% if user.is_authenticated %}container-fluid{% else %}container{% endif %}">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% block contenido %}{% endblock %}
+        </div>
+      </main>
+  </div>
+</div>
+
+<footer class="bg-white border-top py-3 mt-auto">
+  <div class="container-fluid d-flex flex-wrap justify-content-between small text-muted px-4">
+    <span>Centro Médico Universitario · Universidad Nacional del Centro del Perú</span>
+    <span>IS093A · Práctica Semana 12 · Caso 2 · Datos ficticios</span>
+  </div>
+</footer>
+<script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Mi asistencia{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Mi asistencia</h1>
+    <p class="text-muted small mb-0">{{ empleado.nombre_completo }} · {{ empleado.area.nombre }} · Saldo: {{ saldo_disponible }} día(s)</p>
+  </div>
+  <form method="post" action="{% url 'asistencia:marcar_asistencia' %}">
+    {% csrf_token %}
+    <button class="btn btn-primary btn-sm" type="submit">Registrar marcación de hoy</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Extra</th><th>Observación</th></tr></thead>
+      <tbody>
+        {% for registro in page_obj %}
+          <tr>
+            <td class="small text-nowrap">{{ registro.fecha|date:"d/m/Y" }}</td>
+            <td class="small">{{ registro.hora_entrada|time:"H:i"|default:"—" }}</td>
+            <td class="small">{{ registro.hora_salida|time:"H:i"|default:"—" }}</td>
+            <td class="small fw-semibold">{{ registro.total_horas }}</td>
+            <td class="small">{% if registro.tiene_extra %}<span class="badge text-bg-warning">{{ registro.total_extra }}</span>{% else %}0.00{% endif %}</td>
+            <td class="small text-muted">{{ registro.observacion|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Aún no tiene marcaciones registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacion.html" %}
+<p class="small text-muted mt-3 mb-0">Jornada base: 8 horas. Las horas que excedan la jornada se calculan como horas extra.</p>
+{% endblock %}

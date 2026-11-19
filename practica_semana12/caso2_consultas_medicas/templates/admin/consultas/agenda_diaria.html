@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Inicio</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label='consultas' %}">Consultas</a>
+  &rsaquo; <a href="{% url 'admin:consultas_cita_changelist' %}">Citas</a>
+  &rsaquo; Agenda diaria
+</div>
+{% endblock %}
+{% block content %}
+<h1>Agenda diaria por médico</h1>
+<form method="get" style="margin: 1rem 0; display:flex; gap:.5rem; align-items:center;">
+  <label for="fecha"><strong>Fecha:</strong></label>
+  <input type="date" id="fecha" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+  <button type="submit" class="button">Ver agenda</button>
+  <a class="button" href="?fecha={{ fecha|date:'Y-m-d' }}">Actualizar</a>
+  <a href="{% url 'admin:consultas_cita_changelist' %}">Volver a citas</a>
+</form>
+<p><strong>{{ fecha|date:"l d \d\e F \d\e Y" }}</strong> · {{ citas|length }} cita(s)</p>
+
+{% regroup citas by medico as grupos %}
+{% for grupo in grupos %}
+  <div class="module" style="margin-bottom:1.25rem;">
+    <h2 style="padding:.5rem 1rem; margin:0;">
+      Dr(a). {{ grupo.grouper.nombre_completo }} · {{ grupo.grouper.especialidad.nombre }} · Consultorio {{ grupo.grouper.consultorio }}
+    </h2>
+    <table style="width:100%;">
+      <thead>
+        <tr><th>Hora</th><th>Paciente</th><th>Especialidad</th><th>Estado</th><th>Motivo</th></tr>
+      </thead>
+      <tbody>
+        {% for cita in grupo.list %}
+          <tr>
+            <td>{{ cita.hora|time:"H:i" }}</td>
+            <td><a href="{% url 'admin:consultas_cita_change' cita.pk %}">{{ cita.paciente.nombre_completo }}</a></td>
+            <td>{{ cita.especialidad.nombre }}</td>
+            <td>{{ cita.get_estado_display }}</td>
+            <td>{{ cita.motivo|truncatechars:70 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% empty %}
+  <p class="help">No hay citas registradas para la fecha seleccionada.</p>
+{% endfor %}
+{% endblock %}

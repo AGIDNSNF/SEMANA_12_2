@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block titulo %}Panel · Centro Médico UNCP{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+  <div>
+    <p class="text-muted small mb-1">Panel · {{ rol }}</p>
+    <h1 class="h3 fw-bold mb-0">Hola, {{ user.first_name|default:user.username }}</h1>
+    <p class="text-muted small mb-0">{{ hoy|date:"l d \d\e F \d\e Y" }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if rol_actual == 'Pacientes' or rol_actual == 'Recepcionistas' or rol_actual == 'Admins' %}
+      <a class="btn btn-success btn-sm" href="{% url 'consultas:agendar_cita' %}">Agendar cita</a>
+    {% endif %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'consultas:agenda' %}">Ver agenda</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <p class="detail-label mb-1">Citas de hoy</p>
+      <p class="stat-value text-success mb-1">{{ estadisticas.citas_hoy }}</p>
+      <p class="small text-muted mb-0">Agenda del día</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#fd7e14"><div class="card-body">
+      <p class="detail-label mb-1">Pendientes</p>
+      <p class="stat-value text-warning mb-1">{{ estadisticas.pendientes }}</p>
+      <p class="small text-muted mb-0">Por confirmar</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#0d6efd"><div class="card-body">
+      <p class="detail-label mb-1">Confirmadas</p>
+      <p class="stat-value text-primary mb-1">{{ estadisticas.confirmadas }}</p>
+      <p class="small text-muted mb-0">Próximas atenciones</p>
+    </div></div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="card stat-card h-100" style="border-left-color:#198754"><div class="card-body">
+      <p class="detail-label mb-1">Completadas</p>
+      <p class="stat-value text-success mb-1">{{ estadisticas.completadas }}</p>
+      <p class="small text-muted mb-0">Con atención registrada</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Próximas citas</span>
+        <a class="small" href="{% url 'consultas:agenda' %}">Ver agenda completa</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Médico</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            {% for cita in proximas %}
+              <tr>
+                <td class="small">{{ cita.fecha|date:"d/m/Y" }}</td>
+                <td class="small">{{ cita.hora|time:"H:i" }}</td>
+                <td class="small">{{ cita.paciente.nombre_completo }}</td>
+                <td class="small">{{ cita.medico.nombre_completo }}</td>
+                <td><span class="badge text-bg-{{ cita.estado_visual }}">{{ cita.get_estado_display }}</span></td>
+                <td><a class="btn btn-sm btn-outline-success" href="{% url 'consultas:cita_detalle' cita.pk %}">Ver</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">No hay citas próximas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    {% if rol_actual == 'Admins' %}
+      <div class="card mb-3"><div class="card-body">
+        <p class="detail-label mb-1">Pacientes registrados</p>
+        <p class="h4 fw-bold mb-2">{{ total_pacientes }}</p>
+        <p class="detail-label mb-1">Médicos activos</p>
+        <p class="h4 fw-bold mb-0">{{ total_medicos }}</p>
+      </div></div>
+      <div class="card"><div class="card-body small">
+        <p class="fw-semibold mb-2">Auditoría reciente</p>
+        {% for evento in auditoria_reciente %}
+          <div class="d-flex justify-content-between border-bottom py-1">
+            <span>{{ evento.get_accion_display }}</span>
+            <span class="text-muted">{{ evento.fecha|date:"d/m H:i" }}</span>
+          </div>
+        {% empty %}<p class="text-muted mb-0">Sin eventos.</p>{% endfor %}
+      </div></div>
+    {% elif rol_actual == 'Médicos' %}
+      <div class="card mb-3"><div class="card-body">
+        <p class="detail-label mb-1">Pacientes atendidos</p>
+        <p class="h4 fw-bold mb-2">{{ total_pacientes }}</p>
+        <p class="detail-label mb-1">Consultas registradas</p>
+        <p class="h4 fw-bold mb-0">{{ estadisticas.consultas }}</p>
+      </div></div>
+      <div class="card"><div class="card-body small">
+        <p class="fw-semibold mb-2">Notas clínicas recientes</p>
+        {% for nota in notas_recientes %}
+          <div class="border-bottom py-1">
+            <div>{{ nota.consulta.cita.paciente.nombre_completo }}</div>
+            <div class="text-muted">{{ nota.fecha|date:"d/m/Y H:i" }}</div>
+          </div>
+        {% empty %}<p class="text-muted mb-0">Sin notas registradas.</p>{% endfor %}
+      </div></div>
+    {% elif rol_actual == 'Pacientes' %}
+      <div class="card mb-3"><div class="card-body">
+        <p class="detail-label mb-1">Mi historial</p>
+        <p class="small text-muted">Consulte sus consultas y notas clínicas autorizadas.</p>
+        <a class="btn btn-outline-success w-100" href="{% url 'consultas:historial' user.paciente.pk %}">Ver mi historial</a>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <p class="detail-label mb-1">Mis consultas</p>
+        <ul class="list-unstyled small mb-0">
+          {% for consulta in mis_consultas %}
+            <li class="border-bottom py-1">
+              <div>{{ consulta.fecha_registro|date:"d/m/Y" }}</div>
+              <div class="text-muted">{{ consulta.medico.nombre_completo }}</div>
+            </li>
+          {% empty %}<li class="text-muted">Aún no tiene consultas.</li>{% endfor %}
+        </ul>
+      </div></div>
+    {% elif rol_actual == 'Recepcionistas' %}
+      <div class="card mb-3"><div class="card-body">
+        <p class="detail-label mb-1">Pacientes registrados</p>
+        <p class="h4 fw-bold mb-2">{{ total_pacientes }}</p>
+        <p class="detail-label mb-1">Citas pendientes</p>
+        <p class="h4 fw-bold mb-0">{{ estadisticas.pendientes }}</p>
+      </div></div>
+      <div class="card"><div class="card-body small text-muted">
+        <p class="fw-semibold">Recordatorio de privacidad</p>
+        <p class="mb-0">Su rol permite gestionar citas y pacientes, pero no acceder a diagnósticos ni tratamientos.</p>
+      </div></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if rol_actual == 'Admins' and por_especialidad %}
+  <div class="card mt-4">
+    <div class="card-header bg-white fw-semibold">Citas por especialidad</div>
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Especialidad</th><th class="text-end">Citas</th></tr></thead>
+        <tbody>
+          {% for especialidad in por_especialidad %}
+            <tr><td>{{ especialidad.nombre }}</td><td class="text-end">{{ especialidad.total }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

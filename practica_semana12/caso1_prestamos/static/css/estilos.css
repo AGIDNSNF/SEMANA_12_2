@@ -1,0 +1,113 @@
+:root {
+  --uncp-azul: #123a6b;
+  --uncp-azul-oscuro: #0b2749;
+  --uncp-acento: #2f80ed;
+}
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #1f2937;
+}
+.bg-uncp {
+  background: linear-gradient(90deg, var(--uncp-azul-oscuro), var(--uncp-azul));
+}
+.brand-mark {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--uncp-azul);
+  font-weight: 700;
+  margin-right: .25rem;
+}
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  min-height: calc(100vh - 120px);
+}
+.sidebar .nav-link {
+  color: #334155;
+  border-radius: .5rem;
+  font-size: .925rem;
+  padding: .5rem .75rem;
+}
+.sidebar .nav-link:hover {
+  background: #eef4ff;
+  color: var(--uncp-azul);
+}
+.sidebar .nav-pills .nav-link.active {
+  background: var(--uncp-azul);
+  color: #fff;
+}
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: .75rem;
+}
+.stat-card {
+  border-left: 4px solid var(--uncp-acento);
+}
+.stat-card .stat-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.table thead th {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: #64748b;
+  background: #f8fafc;
+}
+.hero {
+  background: linear-gradient(135deg, var(--uncp-azul-oscuro), #1f4f8f);
+  color: #fff;
+  border-radius: .9rem;
+}
+.hero .form-control, .hero .form-select {
+  border: none;
+}
+.catalog-card {
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.catalog-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 .5rem 1.25rem rgba(15, 23, 42, .1);
+}
+.badge-estado {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.login-wrapper {
+  min-height: 80vh;
+}
+.login-card {
+  max-width: 440px;
+  width: 100%;
+}
+.form-text, .helptext {
+  font-size: .8rem;
+  color: #64748b;
+}
+.errorlist {
+  list-style: none;
+  padding-left: 0;
+  margin: .25rem 0 0;
+  color: #b91c1c;
+  font-size: .85rem;
+}
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+.detail-label {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #64748b;
+  font-weight: 600;
+}
+@media print {
+  nav, aside, footer, .no-print { display: none !important; }
+}

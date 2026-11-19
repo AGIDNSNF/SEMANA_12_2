@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes de asistencia{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Reportes de asistencia</h1>
+    <p class="text-muted small mb-0">Periodo: {{ desde|date:"d/m/Y" }} – {{ hasta|date:"d/m/Y" }} · Jornada base de 8 horas.</p>
+  </div>
+  <button class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">Imprimir</button>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body">
+    <p class="detail-label mb-1">Registros</p><p class="stat-value mb-0">{{ total_registros }}</p>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card" style="border-left-color:#15803d"><div class="card-body">
+    <p class="detail-label mb-1">Horas trabajadas</p><p class="stat-value mb-0">{{ total_horas }}</p>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card" style="border-left-color:#d97706"><div class="card-body">
+    <p class="detail-label mb-1">Horas extra</p><p class="stat-value mb-0">{{ total_extra }}</p>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card" style="border-left-color:#7c3aed"><div class="card-body">
+    <p class="detail-label mb-1">Solicitudes pendientes</p><p class="stat-value mb-0">{{ pendientes }}</p>
+  </div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Resumen por área</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Área</th><th class="text-end">Empleados</th><th class="text-end">Horas</th><th class="text-end">Extra</th></tr></thead>
+          <tbody>
+            {% for fila in resumen_areas %}
+              <tr>
+                <td class="small">{{ fila.area.nombre }}</td>
+                <td class="text-end small">{{ fila.empleados }}</td>
+                <td class="text-end small fw-semibold">{{ fila.horas }}</td>
+                <td class="text-end small">{% if fila.extra > 0 %}<span class="badge text-bg-warning">{{ fila.extra }}</span>{% else %}0.00{% endif %}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-muted text-center">Sin datos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Empleados con más horas extra</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Empleado</th><th>Área</th><th class="text-end">Días</th><th class="text-end">Extra</th></tr></thead>
+          <tbody>
+            {% for fila in top_extra %}
+              <tr>
+                <td class="small">{{ fila.empleado.nombre_completo }}</td>
+                <td class="small">{{ fila.empleado.area.nombre }}</td>
+                <td class="text-end small">{{ fila.dias }}</td>
+                <td class="text-end small fw-semibold">{{ fila.extra }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-muted text-center">Sin datos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="small text-muted mt-4 mb-0">Reporte agregado con datos ficticios. Las correcciones de asistencia quedan auditadas de forma individual.</p>
+{% endblock %}

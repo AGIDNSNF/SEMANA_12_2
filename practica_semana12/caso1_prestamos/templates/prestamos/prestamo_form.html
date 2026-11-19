@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 mb-0 fw-bold">{{ titulo }}</h1>
+        <p class="small text-muted mb-0">
+          {% if es_rapido %}
+            El préstamo se registra como activo y queda vinculado a su usuario como asistente responsable.
+          {% else %}
+            La solicitud quedará pendiente hasta que el personal asistente la apruebe.
+          {% endif %}
+        </p>
+      </div>
+      <div class="card-body">
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+              <div class="col-12 {% if field.name == 'cantidad' %}col-md-4{% elif field.name == 'fecha_prestamo' or field.name == 'fecha_prevista_devolucion' %}col-md-4{% elif field.name == 'estado_equipo' %}col-md-6{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-outline-secondary" href="{% if es_rapido %}{% url 'prestamos:lista_prestamos' %}{% else %}{% url 'prestamos:mis_prestamos' %}{% endif %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">{% if es_rapido %}Registrar y activar{% else %}Enviar solicitud{% endif %}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="alert alert-light border mt-3 small text-muted">
+      <strong>Reglas aplicadas:</strong> máximo 3 préstamos activos por docente, solo equipos operativos,
+      stock suficiente y fecha de devolución posterior a la de préstamo.
+    </div>
+  </div>
+</div>
+{% endblock %}

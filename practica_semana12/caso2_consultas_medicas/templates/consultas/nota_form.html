@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Agregar nota clínica{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-white">
+        <h1 class="h5 fw-bold mb-0">Agregar nota clínica</h1>
+        <p class="small text-muted mb-0">Consulta del {{ consulta.fecha_registro|date:"d/m/Y H:i" }} · {{ consulta.cita.paciente.nombre_completo }}</p>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info small">La consulta original no se modifica; esta nota se agrega como ampliación posterior.</div>
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.contenido.id_for_label }}">Contenido de la nota</label>
+            {{ form.contenido }}
+            {% if form.contenido.errors %}<ul class="errorlist">{% for error in form.contenido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{% url 'consultas:historial' consulta.cita.paciente_id %}">Cancelar</a>
+            <button class="btn btn-success" type="submit">Agregar nota</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

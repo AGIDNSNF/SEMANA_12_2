@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-header bg-white"><h1 class="h5 fw-bold mb-0">{{ titulo }}</h1></div>
+      <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+              <div class="col-12 {% if field.name != 'nombres' and field.name != 'apellidos' and field.name != 'email' and field.name != 'cargo' %}col-md-6{% else %}col-md-6{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="alert alert-light border mt-3 small text-muted mb-0">
+            El DNI debe tener 8 dígitos y el correo debe pertenecer a <strong>@tecnoandes.pe</strong>. Si el empleado no tiene usuario, se crea uno sin contraseña utilizable para ser activado por RRHH.
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-outline-secondary" href="{% url 'asistencia:empleados' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar empleado</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

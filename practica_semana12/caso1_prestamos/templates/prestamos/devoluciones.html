@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Devoluciones pendientes{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Devoluciones pendientes</h1>
+    <p class="text-muted small mb-0">Préstamos activos o vencidos que aún no han sido devueltos.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr><th>#</th><th>Docente</th><th>Equipo</th><th>Cant.</th><th>Prevista</th><th>Retraso</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for prestamo in page_obj %}
+          <tr>
+            <td class="text-muted">{{ prestamo.pk }}</td>
+            <td class="small">{{ prestamo.docente.get_full_name|default:prestamo.docente.username }}</td>
+            <td>
+              <span class="fw-semibold">{{ prestamo.equipo.nombre }}</span>
+              <div class="small text-muted">{{ prestamo.equipo.codigo_patrimonial }}</div>
+            </td>
+            <td>{{ prestamo.cantidad }}</td>
+            <td class="small">{{ prestamo.fecha_prevista_devolucion|date:"d/m/Y" }}</td>
+            <td class="small {% if prestamo.dias_retraso %}text-danger fw-semibold{% endif %}">{{ prestamo.dias_retraso }} día(s)</td>
+            <td><span class="badge badge-estado {{ prestamo.estado_visual }}">{{ prestamo.get_estado_display }}</span></td>
+            <td>
+              <a class="btn btn-sm btn-primary" href="{% url 'prestamos:registrar_devolucion' prestamo.pk %}">Registrar devolución</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No hay devoluciones pendientes.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacion.html" %}
+{% endblock %}

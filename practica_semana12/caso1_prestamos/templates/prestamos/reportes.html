@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes · Préstamos UNCP{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-0">Reportes de préstamos</h1>
+    <p class="text-muted small mb-0">Indicadores globales del servicio de laboratorios.</p>
+  </div>
+  <a class="btn btn-outline-primary btn-sm" href="{% url 'prestamos:exportar_reporte' %}">Exportar CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card stat-card"><div class="card-body">
+    <p class="detail-label mb-1">Préstamos totales</p><p class="stat-value mb-0">{{ total_prestamos }}</p>
+  </div></div></div>
+  <div class="col-md-4"><div class="card stat-card" style="border-left-color:#198754"><div class="card-body">
+    <p class="detail-label mb-1">Devoluciones</p><p class="stat-value mb-0">{{ total_devoluciones }}</p>
+  </div></div></div>
+  <div class="col-md-4"><div class="card stat-card" style="border-left-color:#dc3545"><div class="card-body">
+    <p class="detail-label mb-1">Vencidos pendientes</p><p class="stat-value mb-0">{{ vencidos|length }}</p>
+  </div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Préstamos por estado</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Estado</th><th class="text-end">Total</th></tr></thead>
+          <tbody>
+            {% for fila in por_estado %}
+              <tr><td class="text-capitalize">{{ fila.estado }}</td><td class="text-end fw-semibold">{{ fila.total }}</td></tr>
+            {% empty %}<tr><td colspan="2" class="text-muted text-center">Sin datos.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Equipos por laboratorio</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Laboratorio</th><th class="text-end">Equipos</th><th class="text-end">Stock</th></tr></thead>
+          <tbody>
+            {% for lab in por_laboratorio %}
+              <tr><td>{{ lab.nombre }}</td><td class="text-end">{{ lab.num_equipos }}</td><td class="text-end">{{ lab.stock|default:0 }}</td></tr>
+            {% empty %}<tr><td colspan="3" class="text-muted text-center">Sin datos.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Equipos más solicitados</div>
+      <ul class="list-group list-group-flush">
+        {% for equipo in top_equipos %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ equipo.nombre }} <span class="text-muted small">{{ equipo.codigo_patrimonial }}</span></span>
+            <span class="badge text-bg-primary">{{ equipo.total_prestamos }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">Sin datos.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Docentes con más préstamos</div>
+      <ul class="list-group list-group-flush">
+        {% for docente in top_docentes %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ docente.get_full_name|default:docente.username }}</span>
+            <span class="badge text-bg-secondary">{{ docente.total }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">Sin datos.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header bg-white fw-semibold">Préstamos vencidos sin devolución</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Docente</th><th>Equipo</th><th>Prevista</th><th>Retraso</th></tr></thead>
+      <tbody>
+        {% for prestamo in vencidos %}
+          <tr>
+            <td><a href="{% url 'prestamos:prestamo_detalle' prestamo.pk %}">#{{ prestamo.pk }}</a></td>
+            <td class="small">{{ prestamo.docente.get_full_name|default:prestamo.docente.username }}</td>
+            <td class="small">{{ prestamo.equipo.nombre }} · {{ prestamo.equipo.codigo_patrimonial }}</td>
+            <td class="small">{{ prestamo.fecha_prevista_devolucion|date:"d/m/Y" }}</td>
+            <td class="text-danger fw-semibold small">{{ prestamo.dias_retraso }} día(s)</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No hay préstamos vencidos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
